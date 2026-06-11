@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Điều Chỉnh Khò Khò 4000</title>
+    <!-- Tailwind CSS cho thiết kế đáp ứng cực đẹp -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts cho kiểu chữ comic hoạt hình phong cách -->
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Fredoka+One&family=Inter:wght@400;600;800&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <!-- Font Awesome cho bộ biểu tượng nút bấm phong phú -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1329;
+            background-image: radial-gradient(circle at top right, #1c2541 0%, #0b1329 100%);
+        }
+        .comic-font {
+            font-family: 'Fredoka One', cursive;
+        }
+        .hand-font {
+            font-family: 'Patrick Hand', cursive;
+        }
+        .soft-font {
+            font-family: 'Comfortaa', cursive;
+        }
+        /* Thanh cuộn phong cách tối giản cho bảng điều khiển */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+        /* Hiệu ứng thở nhẹ nhàng cho màn hình */
+        @keyframes gentle-pulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.2)); }
+            50% { transform: scale(1.02); filter: drop-shadow(0 0 25px rgba(99, 102, 241, 0.4)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.2)); }
+        }
+        .pulse-breathing {
+            animation: gentle-pulse 4s infinite ease-in-out;
+        }
+        /* Hoạt họa rung màn hình dữ dội khi bị chọc phá giấc ngủ */
+        @keyframes screen-shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-4px, -6px) rotate(-1.5deg); }
+            20% { transform: translate(-8px, 0px) rotate(1.5deg); }
+            30% { transform: translate(4px, 8px) rotate(0deg); }
+            40% { transform: translate(8px, -4px) rotate(2deg); }
+            50% { transform: translate(-4px, 4px) rotate(-1deg); }
+            60% { transform: translate(-8px, 8px) rotate(0deg); }
+            70% { transform: translate(8px, 4px) rotate(1deg); }
+            80% { transform: translate(-4px, -8px) rotate(-2deg); }
+            90% { transform: translate(4px, -4px) rotate(1.5deg); }
+        }
+        .shake-active {
+            animation: screen-shake 0.4s infinite;
+        }
+        /* Hiệu ứng sấm sét chớp nháy màn hình */
+        @keyframes lightning-flash {
+            0%, 90%, 100% { opacity: 0; }
+            92%, 96% { opacity: 0.85; background-color: #ffffff; }
+            94% { opacity: 0.2; }
+        }
+        .lightning-overlay {
+            animation: lightning-flash 6s infinite;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-100 flex flex-col justify-between overflow-x-hidden">
+
+    <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur px-6 py-4 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-indigo-500 to-purple-600 p-3 rounded-2xl shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-bed text-2xl text-yellow-300 animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-indigo-400 to-purple-400 comic-font">
+                        KHÒ KHÒ SIMULATOR 4000
+                    </h1>
+                    <p class="text-xs text-slate-400 soft-font">Trình điều khiển giấc ngủ tương tác trực tiếp lên ảnh gốc <b>image_3d545a.png</b></p>
+                </div>
+            </div>
+            
+            <!-- Điều khiển âm lượng và tình trạng âm thanh giả lập -->
+            <div class="flex items-center gap-3">
+                <button id="audioToggleBtn" class="flex items-center gap-2 bg-rose-600/90 hover:bg-rose-500 text-white px-4 py-2.5 rounded-xl font-semibold transition-all shadow-lg hover:scale-105 active:scale-95 duration-200">
+                    <i id="audioIcon" class="fa-solid fa-volume-xmark"></i>
+                    <span id="audioText">Bật Tiếng Gáy Giả Lập!</span>
+                </button>
+                <div class="hidden md:flex flex-col items-end text-right text-xs text-slate-400 bg-slate-950/50 p-2 rounded-lg border border-slate-800">
+                    <div>Trạng thái: <span id="statusBadge" class="text-emerald-400 font-bold">ĐANG NGỦ SAY</span></div>
+                    <div class="text-[10px] text-slate-500">Mô phỏng gốc: image_3d545a.png</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- CỘT TRÁI: Bảng điều khiển thông số các hoạt động vui nhộn (5/12 cols) -->
+        <section class="lg:col-span-5 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-2xl backdrop-blur-md flex flex-col gap-6 w-full">
+            
+            <!-- Bộ các chế độ ngủ cài đặt nhanh -->
+            <div>
+                <h2 class="text-sm font-semibold tracking-wider text-indigo-400 uppercase mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-moon"></i> Thiết lập chế độ ngủ nhanh
+                </h2>
+                <div class="grid grid-cols-3 gap-2">
+                    <button id="preset-light" onclick="applyPreset('light')" class="preset-btn bg-slate-800 hover:bg-slate-700/80 p-3 rounded-2xl text-xs font-bold border-2 border-transparent transition-all flex flex-col items-center gap-2 duration-300">
+                        <span class="text-xl">😴</span>
+                        <span>Mơ Màng</span>
+                    </button>
+                    <button id="preset-deep" onclick="applyPreset('deep')" class="preset-btn bg-indigo-600/40 border-2 border-indigo-500 p-3 rounded-2xl text-xs font-bold transition-all flex flex-col items-center gap-2 duration-300">
+                        <span class="text-xl">💤</span>
+                        <span>Ngủ Say Sưa</span>
+                    </button>
+                    <button id="preset-thunder" onclick="applyPreset('thunder')" class="preset-btn bg-slate-800 hover:bg-slate-700/80 p-3 rounded-2xl text-xs font-bold border-2 border-transparent transition-all flex flex-col items-center gap-2 duration-300">
+                        <span class="text-xl">⛈️</span>
+                        <span>Sấm Sét</span>
+                    </button>
+                </div>
+            </div>
+
+            <hr class="border-slate-800">
+
+            <div class="flex flex-col gap-5">
+                <h2 class="text-sm font-semibold tracking-wider text-teal-400 uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-sliders"></i> Tùy Chỉnh Các Hoạt Động Vui Nhộn
+                </h2>
+                
+                <!-- Độ To Tiếng Gáy -->
+                <div class="bg-slate-950/40 p-4 rounded-2xl border border-slate-800/60">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-wind text-indigo-400"></i> Độ To Tiếng Gáy
+                        </label>
+                        <span id="volumeVal" class="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full font-bold">75dB</span>
+                    </div>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="75" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <span>Thở dốc nhẹ</span>
+                        <span>Sấm vang trời đất</span>
+                    </div>
+                </div>
+
+                <!-- Tốc Độ Bong Bóng Zzz & Nốt Nhạc -->
+                <div class="bg-slate-950/40 p-4 rounded-2xl border border-slate-800/60">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-cloud text-teal-400 animate-pulse"></i> Mật độ hạt chữ Zzz & 🎵
+                        </label>
+                        <span id="zzzVal" class="text-xs bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full font-bold">45 hạt</span>
+                    </div>
+                    <input type="range" id="zzzSlider" min="5" max="120" value="45" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-teal-400">
+                </div>
+
+                <!-- Nhịp Thở -->
+                <div class="bg-slate-950/40 p-4 rounded-2xl border border-slate-800/60">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-wave-square text-purple-400"></i> Chu kỳ lồng ngực thở phập phồng
+                        </label>
+                        <span id="breatheVal" class="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full font-bold">Đều đặn</span>
+                    </div>
+                    <input type="range" id="breatheSlider" min="10" max="80" value="30" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                </div>
+
+                <!-- Đàn Chim Đậu Động -->
+                <div class="bg-slate-950/40 p-4 rounded-2xl border border-slate-800/60">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-crow text-yellow-400"></i> Đàn chim nhỏ đậu nghịch ngợm
+                        </label>
+                        <span id="birdVal" class="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full font-bold">3 con</span>
+                    </div>
+                    <input type="range" id="birdSlider" min="0" max="15" value="3" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-yellow-400">
+                </div>
+            </div>
+
+            <hr class="border-slate-800">
+
+            <div>
+                <h2 class="text-sm font-semibold tracking-wider text-pink-400 uppercase mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-nib"></i> Soạn Thảo Nội Dung Trực Tiếp Lên Ảnh
+                </h2>
+                <div class="flex flex-col gap-3">
+                    <div>
+                        <label class="text-xs text-slate-400 mb-1 block">Chữ hiển thị trên màn hình máy tính:</label>
+                        <input type="text" id="screenTextInp" value="CHẾ ĐỘ NGỦ SÂU - KHÔNG LÀM PHIỀN" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-pink-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 mb-1 block">Chữ phụ đề (Subtitle) vui nhộn:</label>
+                        <input type="text" id="subtitleInp" value="Tiếng gáy vang dội núi rừng!" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-pink-500 transition-all">
+                    </div>
+                    <div class="flex items-center justify-between mt-1 bg-slate-950/30 p-2 rounded-xl border border-slate-800/50">
+                        <span class="text-xs text-slate-300">Hiển thị chú mèo lười trên màn hình:</span>
+                        <input type="checkbox" id="catToggle" checked class="w-4 h-4 rounded cursor-pointer accent-indigo-500">
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-slate-800">
+
+            <!-- Các công cụ phá hoại giấc ngủ tinh quái -->
+            <div>
+                <h2 class="text-sm font-semibold tracking-wider text-rose-500 uppercase mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-bolt"></i> Hệ Thống Trêu Ghẹo Báo Thức
+                </h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btn-prank-horn" onclick="triggerWakeUp('horn')" class="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white p-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 duration-300">
+                        <i class="fa-solid fa-bullhorn text-sm"></i> Bóp Còi Hơi
+                    </button>
+                    <button id="btn-prank-water" onclick="triggerWakeUp('water')" class="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white p-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 duration-300">
+                        <i class="fa-solid fa-droplet text-sm"></i> Tạt Nước Lạnh
+                    </button>
+                    <button id="btn-prank-phone" onclick="triggerWakeUp('phone')" class="bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 text-white p-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 duration-300">
+                        <i class="fa-solid fa-phone-volume text-sm animate-ring"></i> Gọi Điểm Danh
+                    </button>
+                    <button id="btn-prank-tickle" onclick="triggerWakeUp('tickle')" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white p-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 duration-300">
+                        <i class="fa-solid fa-hand-sparkles text-sm"></i> Chọc Lét Nách
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <section id="visualizerContainer" class="lg:col-span-7 flex flex-col gap-4 w-full sticky top-6 h-fit">
+            
+            <!-- Bảng thông số sinh học thời gian thực HUD -->
+            <div class="grid grid-cols-4 gap-2 bg-slate-950/80 border border-slate-800 p-2.5 rounded-3xl text-center shadow-lg transition-all duration-300">
+                <!-- Card 1: Nhịp Tim -->
+                <div id="cardHeart" class="flex flex-col p-2 rounded-2xl border border-transparent transition-all duration-300">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Nhịp Tim</span>
+                    <span id="statHeart" class="text-base md:text-lg font-bold text-rose-500 comic-font animate-pulse">56 bpm</span>
+                </div>
+                <!-- Card 2: Độ Rung Gáy -->
+                <div id="cardDb" class="flex flex-col p-2 rounded-2xl border border-transparent transition-all duration-300 border-l border-slate-800/80">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Độ Rung Gáy</span>
+                    <span id="statDb" class="text-base md:text-lg font-bold text-indigo-400 comic-font">75 dB</span>
+                </div>
+                <!-- Card 3: Độ Sâu Ngủ -->
+                <div id="cardDepth" class="flex flex-col p-2 rounded-2xl border border-transparent transition-all duration-300 border-l border-slate-800/80">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Độ Sâu Ngủ</span>
+                    <span id="statDepth" class="text-base md:text-lg font-bold text-teal-400 comic-font">92%</span>
+                </div>
+                <!-- Card 4: Hoạt Động Mơ -->
+                <div id="cardDream" class="flex flex-col p-2 rounded-2xl border border-transparent transition-all duration-300 border-l border-slate-800/80 justify-center">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Hoạt Động Mơ</span>
+                    <span id="statDream" class="text-[10px] md:text-xs font-semibold text-purple-400 truncate mt-0.5">Đang mơ ăn đùi gà...</span>
+                </div>
+            </div>
+
+            <!-- Khung Ảnh Gốc & Các Lớp Chồng Xếp Động -->
+            <div class="relative rounded-3xl overflow-hidden border-4 border-slate-800 shadow-2xl bg-slate-950 aspect-[3/4] h-[calc(100vh-160px)] mx-auto w-full max-w-[520px]">
+                
+                <!-- Bức ảnh gốc không chứa nét vẽ sẵn -->
+                <img id="sleepingManImg" src="image_3d545a.jpg" alt="Sleeping Man Original" class="w-full h-full object-cover select-none pointer-events-none transition-all duration-300">
+                
+                <!-- Chớp sáng đỏ báo thức khi giật mình (được nâng z-index lên 100 để phủ lên toàn bộ canvas, bong bóng và màn hình ảo) -->
+                <div id="wakeUpFlashOverlay" class="absolute inset-0 bg-red-600/0 pointer-events-none transition-all duration-200 z-[100] flex items-center justify-center">
+                    <div id="wakeUpWarningText" class="text-white text-2xl md:text-3xl font-extrabold bg-red-700/90 border-4 border-white px-6 py-4 rounded-2xl shadow-2xl scale-0 transition-transform duration-300 uppercase text-center select-none">
+                        ⚠️ GIẬT MÌNH !!!
+                    </div>
+                </div>
+
+                <div id="virtualScreen" class="absolute right-[4.5%] bottom-[14%] w-[42%] h-[35%] overflow-hidden bg-slate-900/95 border border-slate-700 rounded-xl shadow-inner z-20 flex flex-col justify-between p-3 select-none text-slate-200 cursor-grab" style="transform: rotate(4.8deg); box-shadow: inset 0 0 15px rgba(0,0,0,0.8);">
+                    <!-- Hiệu ứng gợn sóng quét màn hình -->
+                    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/5 to-transparent pointer-events-none animate-pulse"></div>
+                    
+                    <!-- Phần nội dung chữ động trên màn hình -->
+                    <div class="w-full text-center mt-1">
+                        <p id="overlayMonitorTitle" class="text-[9px] md:text-[11px] font-extrabold uppercase text-cyan-400 tracking-tight leading-tight comic-font">
+                            CHẾ ĐỘ NGỦ SÂU - KHÔNG LÀM PHIỀN
+                        </p>
+                        <div class="w-full h-[2px] bg-cyan-900 mt-1 rounded"></div>
+                    </div>
+
+                    <!-- Vẽ chú mèo nằm ngủ cực đáng yêu bằng HTML/SVG -->
+                    <div id="sleepingCatContainer" class="flex justify-center items-center flex-grow transition-all duration-300">
+                        <svg class="w-12 h-12" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Đuôi mèo phất phơ nhè nhẹ -->
+                            <path d="M 75,55 Q 85,45 80,35 Q 75,25 78,15" stroke="#eab308" stroke-width="4" stroke-linecap="round" fill="none">
+                                <animateTransform attributeName="transform" type="rotate" values="-5 75 55; 5 75 55; -5 75 55" dur="3s" repeatCount="indefinite"/>
+                            </path>
+                            <!-- Thân mèo cuộn tròn -->
+                            <ellipse cx="50" cy="60" rx="25" ry="18" fill="#eab308" stroke="#ca8a04" stroke-width="2" />
+                            <!-- Đầu mèo cúi ngủ -->
+                            <circle cx="35" cy="50" r="14" fill="#eab308" stroke="#ca8a04" stroke-width="2" />
+                            <!-- Tai mèo -->
+                            <polygon points="25,40 22,25 35,38" fill="#ca8a04" />
+                            <polygon points="38,38 48,25 43,40" fill="#ca8a04" />
+                            <!-- Mắt nhắm ngủ híp -->
+                            <path d="M 27,50 Q 30,53 32,50" stroke="#451a03" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                            <path d="M 38,50 Q 41,53 43,50" stroke="#451a03" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                            <!-- Má hồng -->
+                            <circle cx="28" cy="55" r="2.5" fill="#f43f5e" opacity="0.6" />
+                            <circle cx="42" cy="55" r="2.5" fill="#f43f5e" opacity="0.6" />
+                            <!-- Bọt bong bóng ngủ của mèo -->
+                            <circle cx="22" cy="40" r="4" fill="rgba(147, 197, 253, 0.7)" stroke="#3b82f6" stroke-width="1">
+                                <animate attributeName="r" values="1;4;1" dur="2.5s" repeatCount="indefinite" />
+                                <animate attributeName="cy" values="40;32;40" dur="2.5s" repeatCount="indefinite" />
+                            </circle>
+                        </svg>
+                    </div>
+                    
+                    <!-- Dòng trạng thái hệ thống máy tính -->
+                    <div class="flex justify-between items-center text-[7px] text-cyan-500 font-mono">
+                        <span>CPU: 1.2%</span>
+                        <span class="animate-pulse">● LIVE</span>
+                    </div>
+                </div>
+
+                <!-- Bao bọc khung Phụ Đề bằng ID để kéo thả mượt mà -->
+                <div id="subtitleWrapper" class="absolute left-[31%] bottom-[43%] w-[51%] z-20 transform -rotate-[4deg] text-center cursor-grab select-none">
+                    <p id="overlaySubTitle" class="text-[9px] md:text-[11px] font-bold text-white tracking-wider font-mono bg-black/75 border border-slate-700/50 py-1 px-2 rounded-md shadow-lg leading-tight">
+                        Tiếng gáy vang dội núi rừng!
+                    </p>
+                </div>
+
+                <!-- Bong bóng chữ "KHÒ" (Gỡ bỏ pointer-events-none để có thể bấm & kéo thả) -->
+                <div id="snoreBubbleLeft" class="absolute left-[8%] top-[40%] bg-white text-slate-900 border-2 border-black rounded-full px-4 py-1.5 font-extrabold text-sm md:text-base comic-font shadow-lg z-20 cursor-grab select-none transform -rotate-12">
+                    KHÒ...
+                </div>
+                <div id="snoreBubbleRight" class="absolute right-[12%] top-[31%] bg-white text-slate-900 border-2 border-black rounded-full px-5 py-2 font-extrabold text-base md:text-lg comic-font shadow-lg z-20 cursor-grab select-none transform rotate-12">
+                    KHÒ KHÒ...
+                </div>
+
+                <!-- Sân chơi Canvas vẽ bụi Zzz bay lơ lửng, nốt nhạc bay màu sắc và sương khói từ mũi -->
+                <canvas id="snorerCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-30"></canvas>
+            </div>
+
+            <p class="text-center text-xs text-slate-400">
+                <i class="fa-solid fa-hand-pointer text-yellow-400 animate-bounce"></i> <b>Kéo Thả Nhãn:</b> Bạn có thể dùng chuột hoặc ngón tay để <b>kéo thả trực tiếp</b> các nhãn "KHÒ...", "KHÒ KHÒ...", "Phụ đề" và cả <b>khung màn hình máy tính ảo</b> tới bất cứ vị trí nào trên ảnh! Bấm vào mặt để sinh hạt <b>Zzz</b> nhé!
+            </p>
+            
+        </section>
+
+    </main>
+
+    <!-- Hộp chứa thông báo nổi bật cho các sự kiện của hệ thống -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
+
+    <footer class="bg-slate-950 border-t border-slate-900 py-4 px-6 text-center text-xs text-slate-500 mt-6">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <span>© 2026 - Bản quyền phát triển bởi Đội Ngũ Khò Khò Sáng Tạo</span>
+            <span class="flex items-center gap-1">
+                Lớp vẽ tương tác sống động trên ảnh <b>image_3d545a.png</b> <i class="fa-solid fa-wand-magic-sparkles text-teal-400"></i>
+            </span>
+        </div>
+    </footer>
+
+    <script>
+        // Các phần tử tham chiếu ảnh và vẽ canvas
+        const sleepingManImg = document.getElementById('sleepingManImg');
+        const canvas = document.getElementById('snorerCanvas');
+        const ctx = canvas.getContext('2d');
+        const audioToggleBtn = document.getElementById('audioToggleBtn');
+        const audioIcon = document.getElementById('audioIcon');
+        const audioText = document.getElementById('audioText');
+        const statusBadge = document.getElementById('statusBadge');
+        
+        // Nút kéo và bảng theo dõi
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeVal = document.getElementById('volumeVal');
+        const zzzSlider = document.getElementById('zzzSlider');
+        const zzzVal = document.getElementById('zzzVal');
+        const breatheSlider = document.getElementById('breatheSlider');
+        const breatheVal = document.getElementById('breatheVal');
+        const birdSlider = document.getElementById('birdSlider');
+        const birdVal = document.getElementById('birdVal');
+        
+        // Hộp văn bản nhập liệu và nhãn đè màn hình
+        const screenTextInp = document.getElementById('screenTextInp');
+        const overlayMonitorTitle = document.getElementById('overlayMonitorTitle');
+        const subtitleInp = document.getElementById('subtitleInp');
+        const overlaySubTitle = document.getElementById('overlaySubTitle');
+        const catToggle = document.getElementById('catToggle');
+        const sleepingCatContainer = document.getElementById('sleepingCatContainer');
+        
+        // Bảng dữ liệu HUD
+        const statHeart = document.getElementById('statHeart');
+        const statDb = document.getElementById('statDb');
+        const statDepth = document.getElementById('statDepth');
+        const statDream = document.getElementById('statDream');
+        
+        // Chữ "KHÒ" động và hộp lắc màn hình
+        const snoreBubbleLeft = document.getElementById('snoreBubbleLeft');
+        const snoreBubbleRight = document.getElementById('snoreBubbleRight');
+        const wakeUpFlashOverlay = document.getElementById('wakeUpFlashOverlay');
+        const wakeUpWarningText = document.getElementById('wakeUpWarningText');
+        const visualizerContainer = document.getElementById('visualizerContainer');
+
+        let audioContext = null;
+        let isMuted = true;
+        let isWokenUp = false;
+        let breathingTimer = 0;
+        let breathingCycleSpeed = 0.03; // Điều khiển tốc độ sóng sin phập phồng
+        let particles = [];
+        let canvasWidth = 0;
+        let canvasHeight = 0;
+        
+        // Cấu hình tương tác mặc định đồng bộ hóa với thanh trượt
+        let config = {
+            volume: 75,
+            zzzDensity: 45,
+            breatheSpeed: 30,
+            birdCount: 3
+        };
+
+        // Danh sách các giấc mơ siêu nhảm nhí xoay vòng liên tục
+        const dreams = [
+            "Đang nhai đùi gà chiên mắm...",
+            "Đang trúng Jackpot Vietlott 300 tỷ...",
+            "Đang làm chủ tịch phát biểu...",
+            "Đang đuổi bắt chú cá mập vàng...",
+            "Đang viết code không một dòng lỗi...",
+            "Đang cưỡi chổi bay quanh công ty...",
+            "Đang giải cứu thế giới khỏi deadline..."
+        ];
+
+        // Biến lưu các nốt âm thanh của giả lập tiếng ngáy
+        let snoreNodes = null;
+        let lastBreathExhale = false;
+        // Thư viện audio cho các file trong thư mục `sounds/` (preload vào HTMLAudioElement)
+        const audioLibrary = {};
+        const audioFileMap = {
+            horn: 'sounds/horn.mp3',
+            water: 'sounds/water.mp3',
+            phone: 'sounds/phone.mp3',
+            tickle: 'sounds/tickle.mp3',
+            sign: 'sounds/male-sign.mp3',
+            // Person snoring sample (looped and controlled by volume slider)
+            snore: 'sounds/person-snoring.mp3'
+        };
+
+        // Khởi tạo bộ thu phát âm thanh trình duyệt Web Audio API
+        function initAudio() {
+            if (audioContext) return;
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playPrankSound(type) {
+            if (isMuted) return;
+
+            // Nếu đã preload các file audio trong thư mục `sounds/`, phát HTMLAudioElement
+            try {
+                const htmlAudio = audioLibrary[type];
+                if (htmlAudio) {
+                    htmlAudio.pause();
+                    try { htmlAudio.currentTime = 0; } catch (e) {}
+                    htmlAudio.volume = Math.min(1, (config.volume / 100) * 0.9);
+                    const p = htmlAudio.play();
+                    if (p && p.catch) p.catch(() => {});
+                    return;
+                }
+            } catch (e) {
+                console.warn('audioLibrary play failed', e);
+            }
+
+            if (!audioContext) initAudio();
+            if (!audioContext) return;
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            try {
+                const now = audioContext.currentTime;
+                
+                if (type === 'horn') {
+                    // Âm thanh còi hơi giật mình cường độ cao
+                    const osc1 = audioContext.createOscillator();
+                    const osc2 = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    osc1.type = 'sawtooth';
+                    osc1.frequency.setValueAtTime(220, now);
+                    osc1.frequency.exponentialRampToValueAtTime(440, now + 0.1);
+                    
+                    osc2.type = 'sawtooth';
+                    osc2.frequency.setValueAtTime(330, now);
+                    osc2.frequency.exponentialRampToValueAtTime(660, now + 0.1);
+                    
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.6, now + 0.05);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.9);
+                    
+                    osc1.connect(gainNode);
+                    osc2.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 1.0);
+                    osc2.stop(now + 1.0);
+                } 
+                else if (type === 'water') {
+                    // Âm thanh tiếng tạt nước ào ào (White noise)
+                    const bufferSize = audioContext.sampleRate * 0.5;
+                    const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = Math.random() * 2 - 1;
+                    }
+                    
+                    const noise = audioContext.createBufferSource();
+                    noise.buffer = buffer;
+                    
+                    const filter = audioContext.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(2500, now);
+                    filter.frequency.exponentialRampToValueAtTime(250, now + 0.4);
+                    
+                    const gainNode = audioContext.createGain();
+                    gainNode.gain.setValueAtTime(0.5, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                    
+                    noise.connect(filter);
+                    filter.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    noise.start(now);
+                    noise.stop(now + 0.5);
+                }
+                else if (type === 'phone') {
+                    // Tiếng chuông điện thoại cổ bíp bíp dồn dập
+                    const osc1 = audioContext.createOscillator();
+                    const osc2 = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(440, now);
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(480, now);
+                    
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
+                    
+                    for (let i = 0; i < 6; i++) {
+                        const t = now + i * 0.15;
+                        gainNode.gain.setValueAtTime(0.3, t);
+                        gainNode.gain.setValueAtTime(0, t + 0.07);
+                    }
+                    
+                    osc1.connect(gainNode);
+                    osc2.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + 1.1);
+                    osc2.stop(now + 1.1);
+                }
+                else if (type === 'tickle') {
+                    // Tiếng cười ré khúc khích hoạt hình tần số cao
+                    for (let i = 0; i < 6; i++) {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(750 + Math.random() * 350, now + i * 0.12);
+                        osc.frequency.exponentialRampToValueAtTime(150, now + i * 0.12 + 0.1);
+                        
+                        gain.gain.setValueAtTime(0.2, now + i * 0.12);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.1);
+                        
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        osc.start(now + i * 0.12);
+                        osc.stop(now + i * 0.12 + 0.15);
+                    }
+                }
+            } catch (e) {
+                console.error("Lỗi khởi tạo âm thanh chọc lét:", e);
+            }
+        }
+
+        // Preload audio assets from audioFileMap into audioLibrary
+        function loadAudioAssets() {
+            Object.keys(audioFileMap).forEach(key => {
+                const src = audioFileMap[key];
+                const a = new Audio(src);
+                a.preload = 'auto';
+                a.loop = (key === 'snore');
+                if (key === 'sign') {
+                    a.loop = false;
+                    a.volume = Math.min(1, (config.volume / 100) * 0.55);
+                } else {
+                    a.volume = Math.min(1, (config.volume / 100) * 0.9);
+                }
+                audioLibrary[key] = a;
+                a.addEventListener('error', (ev) => {
+                    console.warn('Failed to load audio', src, ev);
+                });
+            });
+        }
+
+        function startSnoreSynthesizer() {
+            if (!audioContext) return;
+            if (snoreNodes) stopSnoreSynthesizer();
+            
+            const now = audioContext.currentTime;
+            
+            // Thiết kế luồng nhiễu ồn trắng tạo âm sột soạt ở mũi
+            const bufferSize = audioContext.sampleRate * 2.0;
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            const noise = audioContext.createBufferSource();
+            noise.buffer = buffer;
+            noise.loop = true;
+            
+            const noiseFilter = document.getElementById('audioToggleBtn') ? audioContext.createBiquadFilter() : null;
+            if (!noiseFilter) return;
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.setValueAtTime(125, now);
+            noiseFilter.Q.setValueAtTime(2.5, now);
+            
+            // Dao động tần số cực trầm cho cuống họng rung (Rumble)
+            const rumbleOsc = audioContext.createOscillator();
+            rumbleOsc.type = 'triangle';
+            rumbleOsc.frequency.setValueAtTime(62, now);
+            
+            // Bộ dao động LFO tạo độ vấp răng cưa (tiếng ngáy giật cục khò... khò)
+            const tremoloLFO = audioContext.createOscillator();
+            tremoloLFO.type = 'sine';
+            tremoloLFO.frequency.setValueAtTime(15, now);
+            
+            const lfoGain = audioContext.createGain();
+            lfoGain.gain.setValueAtTime(14, now);
+            
+            const mainGain = audioContext.createGain();
+            mainGain.gain.setValueAtTime(0, now);
+
+            tremoloLFO.connect(lfoGain);
+            lfoGain.connect(rumbleOsc.frequency);
+            
+            const noiseGain = audioContext.createGain();
+            noiseGain.gain.setValueAtTime(0.25, now);
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            
+            const rumbleGain = audioContext.createGain();
+            rumbleGain.gain.setValueAtTime(0.75, now);
+            rumbleOsc.connect(rumbleGain);
+            
+            noiseGain.connect(mainGain);
+            rumbleGain.connect(mainGain);
+            mainGain.connect(audioContext.destination);
+            
+            noise.start(now);
+            rumbleOsc.start(now);
+            tremoloLFO.start(now);
+            
+            snoreNodes = {
+                noise, noiseFilter, rumbleOsc, tremoloLFO, mainGain, noiseGain, rumbleGain
+            };
+        }
+
+        function stopSnoreSynthesizer() {
+            if (snoreNodes) {
+                try {
+                    snoreNodes.noise.stop();
+                    snoreNodes.rumbleOsc.stop();
+                    snoreNodes.tremoloLFO.stop();
+                } catch(e) {}
+                snoreNodes = null;
+            }
+        }
+
+        // Tạo ra nhịp thở chân thực giống dải tiếng phổi trong game
+        function updateSnoreSoundIntensity(phaseVal) {
+            if (isMuted || !snoreNodes || isWokenUp) {
+                if (snoreNodes && snoreNodes.mainGain) {
+                    snoreNodes.mainGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.08);
+                }
+                return;
+            }
+            
+            const now = audioContext.currentTime;
+            const targetVolume = (config.volume / 100) * 0.48; // Điều chỉnh âm lượng tối đa an toàn
+            
+            if (phaseVal > 0.05) {
+                // Thời kỳ THỞ RA (Gáy to)
+                const volMultiplier = Math.sin(phaseVal * Math.PI / 2);
+                const gain = targetVolume * volMultiplier;
+                snoreNodes.mainGain.gain.setTargetAtTime(gain, now, 0.12);
+                
+                // Gia tăng tần số rung vấp khi gáy to hơn
+                const lfoFreq = 11 + (config.volume / 11);
+                snoreNodes.tremoloLFO.frequency.setTargetAtTime(lfoFreq, now, 0.15);
+                
+                // Hạ nốt trầm để tăng vẻ nặng nề dồn dập
+                const rumPitch = 53 + (phaseVal * 12);
+                snoreNodes.rumbleOsc.frequency.setTargetAtTime(rumPitch, now, 0.15);
+            } else {
+                // Thời kỳ HÍT VÀO (Tiếng gió rít khẽ)
+                const noiseOnlyVolume = targetVolume * 0.18 * Math.abs(phaseVal);
+                snoreNodes.mainGain.gain.setTargetAtTime(noiseOnlyVolume, now, 0.25);
+                
+                const filterFreq = 190 + Math.abs(phaseVal) * 180;
+                snoreNodes.noiseFilter.frequency.setTargetAtTime(filterFreq, now, 0.15);
+            }
+        }
+
+        // Sync HTML snore audio volume from config (called when sliders change)
+        function updateSnoreAudioFromConfig() {
+            if (audioLibrary && audioLibrary.snore) {
+                try {
+                    audioLibrary.snore.volume = Math.min(1, (config.volume / 100) * 0.9);
+                } catch (e) { /* ignore */ }
+            }
+            if (audioLibrary && audioLibrary.sign) {
+                try {
+                    audioLibrary.sign.volume = Math.min(1, (config.volume / 100) * 0.55);
+                } catch (e) { /* ignore */ }
+            }
+        }
+
+        function playBreathingSignSound() {
+            if (isMuted || !audioLibrary || !audioLibrary.sign) return;
+            const signAudio = audioLibrary.sign;
+            try {
+                signAudio.pause();
+                signAudio.currentTime = 0;
+                signAudio.playbackRate = 0.85 + (config.breatheSpeed / 120);
+                signAudio.volume = Math.min(1, (config.volume / 100) * 0.55);
+                const p = signAudio.play();
+                if (p && p.catch) p.catch(() => {});
+            } catch (e) {
+                console.warn('Could not play breathing sign sound', e);
+            }
+        }
+
+        // Đo đạc lại khung Canvas khi người dùng thu phóng màn hình thiết bị
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvasWidth = rect.width;
+            canvasHeight = rect.height;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+        }
+
+        class SleepParticle {
+            constructor(startX, startY, type) {
+                this.x = startX;
+                this.y = startY;
+                this.type = type; // 'Z', 'Note', 'Star'
+                this.size = 13 + Math.random() * 18;
+                this.maxSize = this.size * 1.6;
+                this.speedX = -0.4 - Math.random() * 2.2; // Bay lướt sang trái phía trên (thoát ra từ mũi)
+                this.speedY = -1.2 - Math.random() * 1.8;
+                this.alpha = 1.0;
+                this.rotation = Math.random() * 0.5 - 0.25;
+                this.rotSpeed = Math.random() * 0.04 - 0.02;
+                
+                // Bảng màu kẹo mút nhẹ dịu cho giấc ngủ thêm sặc sỡ
+                const colors = [
+                    'rgba(187, 247, 208, alpha)', // Xanh bạc hà neon
+                    'rgba(233, 213, 255, alpha)', // Tím oải hương nhạt
+                    'rgba(254, 240, 138, alpha)', // Vàng nắng nhạt
+                    'rgba(253, 164, 175, alpha)', // Hồng phấn nhẹ
+                    'rgba(147, 197, 253, alpha)'  // Xanh dương tơ trời
+                ];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Định hình ký tự ngộ nghĩnh
+                if (this.type === 'Z') {
+                    const zChoices = ['z', 'Z', 'Zzz', 'zZ'];
+                    this.text = zChoices[Math.floor(Math.random() * zChoices.length)];
+                } else if (this.type === 'Note') {
+                    const noteChoices = ['🎵', '🎶', '♩', '♩♫'];
+                    this.text = noteChoices[Math.floor(Math.random() * noteChoices.length)];
+                } else {
+                    this.text = '✨';
+                }
+            }
+
+            update(exhaleIntensity) {
+                // Tăng nhẹ tốc độ đẩy hạt khi luồng thở ra dồn dập
+                this.x += this.speedX * (1 + exhaleIntensity * 1.4);
+                this.y += this.speedY * (1 + exhaleIntensity * 1.4);
+                this.size = Math.min(this.maxSize, this.size + 0.08);
+                this.rotation += this.rotSpeed;
+                
+                // Mờ dần khi tiến đến rìa đỉnh khung hình
+                const lifeProgress = this.y / canvasHeight;
+                if (lifeProgress < 0.65) {
+                    this.alpha = Math.max(0, lifeProgress / 0.65);
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                
+                // Tạo hào quang phát sáng huyền ảo cho các bong bóng chữ
+                ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+                ctx.shadowBlur = 5;
+                
+                const fillColor = this.color.replace('alpha', this.alpha);
+                ctx.fillStyle = fillColor;
+                
+                ctx.font = `bold ${this.size}px "Comfortaa", "Fredoka One", "Patrick Hand", sans-serif`;
+                ctx.fillText(this.text, 0, 0);
+                ctx.restore();
+            }
+        }
+
+        class SleepyBird {
+            constructor(x, y, scale) {
+                this.x = x;
+                this.y = y;
+                this.scale = scale;
+                this.hoverOffset = Math.random() * 80;
+                this.emoji = ['🐦', '🐤', '🐥', '🦜'][Math.floor(Math.random() * 4)];
+            }
+
+            draw(phase) {
+                // Chim khẽ nhấp nhô mình lên xuống theo nhịp hít thở
+                const hoverY = this.y + Math.sin(phase + this.hoverOffset) * 3.5;
+                ctx.save();
+                ctx.translate(this.x, hoverY);
+                
+                const sizeScale = 1.0 + Math.sin(phase) * 0.04;
+                ctx.scale(sizeScale, sizeScale);
+                
+                ctx.font = `${Math.floor(19 * this.scale)}px sans-serif`;
+                ctx.fillText(this.emoji, 0, 0);
+                
+                // Ký tự chữ gáy siêu nhỏ cho chú chim ngủ cùng chủ nhân
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                ctx.font = '7px monospace';
+                ctx.fillText('z²', 13, -7);
+                
+                ctx.restore();
+            }
+        }
+
+        let activeBirds = [];
+        
+        // Phân bổ ngẫu nhiên vị trí bầy chim đậu trên vai hoặc thành màn hình trong ảnh gốc image_3d545a.png
+        function spawnBirds() {
+            activeBirds = [];
+            for (let i = 0; i < config.birdCount; i++) {
+                let bx, by;
+                if (i === 0) {
+                    bx = canvasWidth * 0.48; // Đậu nhẹ lên bả vai phải
+                    by = canvasHeight * 0.54;
+                } else if (i === 1) {
+                    bx = canvasWidth * 0.42; // Đậu trên bắp tay đang khoanh
+                    by = canvasHeight * 0.60;
+                } else if (i === 2) {
+                    bx = canvasWidth * 0.64; // Đậu trên nóc màn hình máy tính
+                    by = canvasHeight * 0.50;
+                } else {
+                    // Phân tán đều ngẫu nhiên ở phần nửa dưới ảnh nơi anh ấy dựa ghế
+                    bx = canvasWidth * (0.32 + Math.random() * 0.45);
+                    by = canvasHeight * (0.55 + Math.random() * 0.22);
+                }
+                activeBirds.push(new SleepyBird(bx, by, 1.05 + Math.random() * 0.25));
+            }
+        }
+
+        function registerCanvasClickListeners() {
+            const handleInteract = (e) => {
+                // Nếu đang nhấn trúng các nhãn dán draggable, bỏ qua việc sinh hạt để không trùng lặp sự kiện kéo thả
+                if (e.target.closest('#snoreBubbleLeft') || e.target.closest('#snoreBubbleRight') || e.target.closest('#subtitleWrapper') || e.target.closest('#virtualScreen')) {
+                    return;
+                }
+                
+                const rect = canvas.getBoundingClientRect();
+                let clientX, clientY;
+                
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                const relativeX = clientX - rect.left;
+                const relativeY = clientY - rect.top;
+                
+                // Chơi tiếng bíp khúc khích chọc lét
+                playPrankSound('tickle');
+                
+                // Sinh chùm bong bóng Zzz siêu khủng ngay tại điểm bấm chuột
+                for (let i = 0; i < 6; i++) {
+                    const p = new SleepParticle(relativeX, relativeY, Math.random() > 0.45 ? 'Z' : 'Note');
+                    p.size = 24 + Math.random() * 22; // Cỡ bự
+                    p.speedX = (Math.random() - 0.5) * 6.5; 
+                    p.speedY = -1.5 - Math.random() * 4.5;
+                    particles.push(p);
+                }
+                
+                showNotification("🎯 Đã chọc ghẹo trực tiếp lên giấc ngủ!", "info");
+            };
+
+            canvas.parentElement.addEventListener('mousedown', (e) => {
+                if (e.button === 0) handleInteract(e);
+            });
+            
+            canvas.parentElement.addEventListener('touchstart', (e) => {
+                handleInteract(e);
+            }, { passive: true });
+        }
+
+        // Đẩy thông báo bong bóng trực quan ở góc phải màn hình
+        function showNotification(text, type = "success") {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            let colorClass = "from-indigo-600 to-purple-600 border-indigo-400";
+            let icon = '<i class="fa-solid fa-cloud-moon"></i>';
+            
+            if (type === "warning") {
+                colorClass = "from-amber-600 to-rose-600 border-rose-500";
+                icon = '<i class="fa-solid fa-triangle-exclamation animate-bounce"></i>';
+            } else if (type === "danger") {
+                colorClass = "from-red-700 to-orange-700 border-red-500";
+                icon = '<i class="fa-solid fa-volume-high animate-pulse"></i>';
+            } else if (type === "info") {
+                colorClass = "from-teal-600 to-cyan-600 border-teal-400";
+                icon = '<i class="fa-solid fa-feather-pointed"></i>';
+            }
+            
+            toast.className = `bg-gradient-to-r ${colorClass} text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 border text-sm font-semibold transition-all duration-300 transform translate-y-4 opacity-0`;
+            toast.innerHTML = `${icon} <span>${text}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 50);
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-4', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        function applyPreset(presetName) {
+            if (isWokenUp) {
+                showNotification("Vui lòng chờ anh chàng ngủ lại đã nhé!", "warning");
+                return;
+            }
+            
+            // Xóa bỏ trạng thái kích hoạt trên tất cả các nút ngủ nhanh
+            ['light', 'deep', 'thunder'].forEach(p => {
+                const btn = document.getElementById(`preset-${p}`);
+                if (btn) {
+                    btn.classList.remove('bg-indigo-600/40', 'border-indigo-500');
+                    btn.classList.add('bg-slate-800', 'border-transparent');
+                }
+            });
+
+            // Gán hiệu ứng viền sáng Indigo lên nút vừa chọn
+            const activePresetBtn = document.getElementById(`preset-${presetName}`);
+            if (activePresetBtn) {
+                activePresetBtn.classList.remove('bg-slate-800', 'border-transparent');
+                activePresetBtn.classList.add('bg-indigo-600/40', 'border-indigo-500');
+            }
+            
+            if (presetName === 'light') {
+                volumeSlider.value = 25;
+                zzzSlider.value = 15;
+                breatheSlider.value = 15;
+                birdSlider.value = 1;
+                showNotification("Đã thiết lập: Ngủ chập chờn, khẽ gáy 😴");
+            } else if (presetName === 'deep') {
+                volumeSlider.value = 75;
+                zzzSlider.value = 45;
+                breatheSlider.value = 30;
+                birdSlider.value = 4;
+                showNotification("Đã thiết lập: Giấc ngủ sâu bình thản 💤");
+            } else if (presetName === 'thunder') {
+                volumeSlider.value = 100;
+                zzzSlider.value = 105;
+                breatheSlider.value = 65;
+                birdSlider.value = 11;
+                showNotification("CẢNH BÁO: Gáy rung chuyển sấm sét toàn văn phòng! ⛈️", "warning");
+            }
+            
+            updateUIControls();
+        }
+
+        // Đồng bộ dữ liệu thanh kéo và thiết lập giá trị hiển thị giao diện
+        function updateUIControls() {
+            config.volume = parseInt(volumeSlider.value);
+            config.zzzDensity = parseInt(zzzSlider.value);
+            config.breatheSpeed = parseInt(breatheSlider.value);
+            config.birdCount = parseInt(birdSlider.value);
+            
+            volumeVal.innerText = `${config.volume}dB`;
+            zzzVal.innerText = `${config.zzzDensity} hạt`;
+            
+            if (config.breatheSpeed < 25) {
+                breatheVal.innerText = "Hít thở khẽ khàng";
+                breathingCycleSpeed = 0.016;
+            } else if (config.breatheSpeed < 55) {
+                breatheVal.innerText = "Thở chậm đều dặn";
+                breathingCycleSpeed = 0.03;
+            } else {
+                breatheVal.innerText = "Hụt hơi cấp bách!";
+                breathingCycleSpeed = 0.065;
+            }
+            
+            birdVal.innerText = `${config.birdCount} con`;
+            spawnBirds();
+
+            // Sync snore HTML audio volume with the current slider value
+            updateSnoreAudioFromConfig();
+        }
+
+        volumeSlider.addEventListener('input', updateUIControls);
+        zzzSlider.addEventListener('input', updateUIControls);
+        breatheSlider.addEventListener('input', updateUIControls);
+        birdSlider.addEventListener('input', updateUIControls);
+
+        // Liên kết các ô nhập liệu tùy biến chữ để vẽ đè trực quan
+        screenTextInp.addEventListener('input', () => {
+            overlayMonitorTitle.innerText = screenTextInp.value;
+        });
+        subtitleInp.addEventListener('input', () => {
+            overlaySubTitle.innerText = subtitleInp.value;
+        });
+        catToggle.addEventListener('change', () => {
+            if (catToggle.checked) {
+                sleepingCatContainer.style.opacity = "1";
+                sleepingCatContainer.style.transform = "scale(1)";
+            } else {
+                sleepingCatContainer.style.opacity = "0";
+                sleepingCatContainer.style.transform = "scale(0.2)";
+            }
+        });
+
+        // Bật/tắt trạng thái giả lập luồng âm thanh
+        audioToggleBtn.addEventListener('click', () => {
+            initAudio();
+            isMuted = !isMuted;
+            
+            if (isMuted) {
+                audioIcon.className = 'fa-solid fa-volume-xmark';
+                audioText.innerText = 'Bật Tiếng Gáy Giả Lập!';
+                audioToggleBtn.className = 'flex items-center gap-2 bg-rose-600/90 hover:bg-rose-500 text-white px-4 py-2.5 rounded-xl font-semibold transition-all shadow-lg hover:scale-105 active:scale-95 duration-200';
+                // stop both WebAudio synthesizer and any HTML snore sample
+                stopSnoreSynthesizer();
+                try {
+                    if (audioLibrary && audioLibrary.snore) {
+                        audioLibrary.snore.pause();
+                        audioLibrary.snore.currentTime = 0;
+                    }
+                } catch(e) {}
+                showNotification("Đã tạm dừng âm thanh mô phỏng giấc ngủ.", "info");
+            } else {
+                audioIcon.className = 'fa-solid fa-volume-high animate-bounce';
+                audioText.innerText = 'Đang Phát Tiếng Gáy!';
+                audioToggleBtn.className = 'flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-semibold transition-all shadow-lg hover:scale-105 active:scale-95 duration-200';
+                // start WebAudio synth for dynamic snore + play HTML snore loop if available
+                startSnoreSynthesizer();
+                try {
+                    if (audioLibrary && audioLibrary.snore) {
+                        // ensure volume matches slider
+                        audioLibrary.snore.volume = Math.min(1, (config.volume / 100) * 0.9);
+                        const p = audioLibrary.snore.play();
+                        if (p && p.catch) p.catch(() => {});
+                    }
+                } catch(e) {}
+                showNotification("Mô phỏng âm thanh khò khò thành công!", "success");
+            }
+        });
+
+        function resetPrankHighlights() {
+            // Trả các nút trêu ghẹo về kiểu mặc định (gỡ bỏ ring và hiệu ứng phóng to)
+            ['horn', 'water', 'phone', 'tickle'].forEach(type => {
+                const btn = document.getElementById(`btn-prank-${type}`);
+                if (btn) {
+                    btn.classList.remove('ring-4', 'ring-orange-400', 'ring-cyan-400', 'ring-yellow-400', 'ring-pink-400', 'scale-105', 'shadow-orange-500/50', 'shadow-cyan-500/50', 'shadow-yellow-500/50', 'shadow-pink-500/50');
+                }
+            });
+            
+            // Trả các thẻ thông số sinh học HUD về trạng thái phẳng ban đầu
+            ['cardHeart', 'cardDb', 'cardDepth', 'cardDream'].forEach(id => {
+                const card = document.getElementById(id);
+                if (card) {
+                    card.classList.remove('bg-amber-950/60', 'border-amber-500', 'bg-cyan-950/60', 'border-cyan-500', 'bg-purple-950/60', 'border-purple-500', 'bg-rose-950/60', 'border-rose-500', 'scale-105', 'shadow-lg', 'shadow-amber-500/30', 'shadow-cyan-500/30', 'shadow-purple-500/30', 'shadow-rose-500/30');
+                    if (id !== 'cardHeart') {
+                        card.classList.add('border-l', 'border-slate-800/80');
+                    }
+                }
+            });
+        }
+
+        function triggerWakeUp(prankType) {
+            if (isWokenUp) {
+                showNotification("Anh ấy đang hoảng hốt bừng tỉnh, chưa thể trêu tiếp!", "warning");
+                return;
+            }
+            
+            isWokenUp = true;
+            playPrankSound(prankType);
+            
+            if (snoreNodes && snoreNodes.mainGain) {
+                snoreNodes.mainGain.gain.setValueAtTime(0, audioContext.currentTime);
+            }
+
+            // Gỡ bỏ highlight cũ và thiết lập highlight đồng bộ mới giữa Nút Bấm và Thẻ Chỉ Số HUD
+            resetPrankHighlights();
+            let activeBtn = document.getElementById(`btn-prank-${prankType}`);
+            let activeCard = null;
+
+            if (prankType === 'horn') {
+                activeCard = document.getElementById('cardDb');
+                if (activeBtn) activeBtn.classList.add('ring-4', 'ring-orange-400', 'scale-105', 'shadow-orange-500/50');
+                if (activeCard) {
+                    activeCard.classList.add('bg-amber-950/60', 'border-amber-500', 'scale-105', 'shadow-lg', 'shadow-amber-500/30');
+                    activeCard.classList.remove('border-l', 'border-slate-800/80');
+                }
+            } else if (prankType === 'water') {
+                activeCard = document.getElementById('cardDepth');
+                if (activeBtn) activeBtn.classList.add('ring-4', 'ring-cyan-400', 'scale-105', 'shadow-cyan-500/50');
+                if (activeCard) {
+                    activeCard.classList.add('bg-cyan-950/60', 'border-cyan-500', 'scale-105', 'shadow-lg', 'shadow-cyan-500/30');
+                    activeCard.classList.remove('border-l', 'border-slate-800/80');
+                }
+            } else if (prankType === 'phone') {
+                activeCard = document.getElementById('cardDream');
+                if (activeBtn) activeBtn.classList.add('ring-4', 'ring-yellow-400', 'scale-105', 'shadow-yellow-500/50');
+                if (activeCard) {
+                    activeCard.classList.add('bg-purple-950/60', 'border-purple-500', 'scale-105', 'shadow-lg', 'shadow-purple-500/30');
+                    activeCard.classList.remove('border-l', 'border-slate-800/80');
+                }
+            } else if (prankType === 'tickle') {
+                activeCard = document.getElementById('cardHeart');
+                if (activeBtn) activeBtn.classList.add('ring-4', 'ring-pink-400', 'scale-105', 'shadow-pink-500/50');
+                if (activeCard) {
+                    activeCard.classList.add('bg-rose-950/60', 'border-rose-500', 'scale-105', 'shadow-lg', 'shadow-rose-500/30');
+                    activeCard.classList.remove('border-l', 'border-slate-800/80');
+                }
+            }
+
+            let msg = "";
+            let zoomScale = "1.12";
+            let filterStyle = "contrast(1.6) brightness(1.2) saturate(2.1) hue-rotate(30deg)";
+            
+            if (prankType === 'horn') {
+                msg = "🚨 CÒI HƠI BỐP TAI, GIẬT THỘT MÌNH !!!";
+                zoomScale = "1.16";
+            } else if (prankType === 'water') {
+                msg = "💦 BỊ TẠT GÁO NƯỚC LẠNH BUỐT ĐẦU !!!";
+                filterStyle = "contrast(1.3) brightness(1.1) saturate(1.8) hue-rotate(-50deg)";
+            } else if (prankType === 'phone') {
+                msg = "📞 SẾP GỌI ĐIỂM DANH HỌP KHẨN CẤP !!!";
+            } else if (prankType === 'tickle') {
+                msg = "🤣 CHỌC LÉT NÁCH NHỘT KHÔNG CHỊU NỔI !!!";
+            }
+
+            // Hiển thị khung cảnh báo và nhấp nháy đỏ chớp giật
+            wakeUpWarningText.innerText = msg;
+            wakeUpWarningText.classList.remove('scale-0');
+            wakeUpWarningText.classList.add('scale-100');
+            wakeUpFlashOverlay.classList.remove('bg-red-600/0');
+            wakeUpFlashOverlay.classList.add('bg-red-600/35');
+            
+            // Rung lắc khung ảnh dữ dội
+            visualizerContainer.classList.add('shake-active');
+            
+            // Ép sắc thái bừng tỉnh quái dị đè lên ảnh gốc image_3d545a.png
+            sleepingManImg.style.transform = `scale(${zoomScale})`;
+            sleepingManImg.style.filter = filterStyle;
+            
+            // Đẩy các thông số nhịp tim vọt lên đỉnh điểm
+            statHeart.innerText = "185 bpm";
+            statHeart.className = "text-lg font-bold text-red-500 comic-font animate-ping";
+            statDb.innerText = "0 dB";
+            statDepth.innerText = "0%";
+            statDepth.className = "text-lg font-bold text-red-500 comic-font";
+            statDream.innerText = "ÁC MỘNG BỊ ĐÁNH THỨC!";
+            statDream.className = "text-xs font-semibold text-red-400 mt-1 animate-pulse";
+            statusBadge.innerText = "BỊ GIẬT MÌNH BỪNG TỈNH!!!";
+            statusBadge.className = "text-red-500 font-bold animate-pulse";
+            
+            showNotification(msg, "danger");
+
+            // Thổi bay các bong bóng Zzz đang lơ lửng tung tóe sang hai bên
+            particles.forEach(p => {
+                p.speedX *= 5.5;
+                p.speedY -= 4.5;
+            });
+
+            // Sau 3 giây hoảng hốt, anh chàng mệt mỏi lại gục xuống ngủ khò tiếp tục
+            setTimeout(() => {
+                isWokenUp = false;
+                
+                wakeUpWarningText.classList.remove('scale-100');
+                wakeUpWarningText.classList.add('scale-0');
+                wakeUpFlashOverlay.classList.remove('bg-red-600/35');
+                wakeUpFlashOverlay.classList.add('bg-red-600/0');
+                
+                visualizerContainer.classList.remove('shake-active');
+                sleepingManImg.style.transform = "scale(1)";
+                sleepingManImg.style.filter = "none";
+                
+                // Thu hồi hiệu ứng Highlight của nút trêu ghẹo và HUD card
+                resetPrankHighlights();
+                
+                // Trả các chỉ số sinh học HUD về mốc thư thái
+                statHeart.innerText = "56 bpm";
+                statHeart.className = "text-lg font-bold text-rose-500 comic-font animate-pulse";
+                statDepth.innerText = `${100 - Math.floor(config.volume/3.2)}%`;
+                statDepth.className = "text-lg font-bold text-teal-400 comic-font";
+                statusBadge.innerText = "ĐANG NGỦ SAY";
+                statusBadge.className = "text-emerald-400 font-bold";
+                
+                showNotification("💤 Quá buồn ngủ... Anh ấy đã ngủ gục trở lại bàn làm việc.");
+            }, 3000);
+        }
+
+        // Xoay vòng đổi giấc mơ ngẫu nhiên mỗi 7 giây
+        setInterval(() => {
+            if (isWokenUp) return;
+            const randomDream = dreams[Math.floor(Math.random() * dreams.length)];
+            statDream.innerText = randomDream;
+        }, 7000);
+
+        // --- CƠ CHẾ KÉO THẢ NHÃN DÁN ĐA THIẾT BỊ KHÔNG TRÔI CHUỘT (DRAG & DROP GRAB OFFSET) ---
+        function makeElementDraggable(el) {
+            let grabX = 0;
+            let grabY = 0;
+            let isDragging = false;
+            
+            // Hỗ trợ cả chuột máy tính và chạm cảm ứng đa điểm trên mobile
+            el.addEventListener('mousedown', dragMouseDown);
+            el.addEventListener('touchstart', dragTouchStart, { passive: false });
+
+            function dragMouseDown(e) {
+                e.preventDefault();
+                initDrag(e.clientX, e.clientY);
+                document.addEventListener('mouseup', closeDragElement);
+                document.addEventListener('mousemove', elementDrag);
+            }
+
+            function dragTouchStart(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                initDrag(touch.clientX, touch.clientY);
+                document.addEventListener('touchend', closeDragElement);
+                document.addEventListener('touchmove', elementTouchDrag, { passive: false });
+            }
+
+            function initDrag(clientX, clientY) {
+                isDragging = true;
+                el.classList.add('cursor-grabbing');
+                el.classList.remove('cursor-grab');
+                // Vẽ đường viền neon đứt nét bao quanh trực quan lúc kéo
+                el.style.outline = "2px dashed #818cf8";
+                el.style.outlineOffset = "4px";
+
+                const parentRect = el.parentElement.getBoundingClientRect();
+                const mouseXInParent = clientX - parentRect.left;
+                const mouseYInParent = clientY - parentRect.top;
+
+                // Xác định & Khóa (Lock) khoảng cách lệch giữa tâm điểm click chuột và vị trí layout Top-Left thực tế của Element
+                grabX = mouseXInParent - el.offsetLeft;
+                grabY = mouseYInParent - el.offsetTop;
+            }
+
+            function elementDrag(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                dragTo(e.clientX, e.clientY);
+            }
+
+            function elementTouchDrag(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                dragTo(touch.clientX, touch.clientY);
+            }
+
+            function dragTo(clientX, clientY) {
+                const parent = el.parentElement;
+                const parentRect = parent.getBoundingClientRect();
+
+                const mouseXInParent = clientX - parentRect.left;
+                const mouseYInParent = clientY - parentRect.top;
+
+                // Chiếu trực tiếp vị trí mới dựa vào Neo Tọa Độ ban đầu để loại bỏ hoàn toàn Jitter/Drift bug
+                let newLeftPx = mouseXInParent - grabX;
+                let newTopPx = mouseYInParent - grabY;
+
+                // Ràng buộc giới hạn biên khung ảnh không cho bay ra ngoài
+                const maxLeft = parentRect.width - el.offsetWidth;
+                const maxTop = parentRect.height - el.offsetHeight;
+                
+                newLeftPx = Math.max(0, Math.min(newLeftPx, maxLeft));
+                newTopPx = Math.max(0, Math.min(newTopPx, maxTop));
+
+                // Quy đổi sang phần trăm (%) để bảo đảm tính Responsive trên mọi màn hình
+                const leftPct = (newLeftPx / parentRect.width) * 100;
+                const topPct = (newTopPx / parentRect.height) * 100;
+
+                // Cập nhật vị trí
+                el.style.left = `${leftPct}%`;
+                el.style.top = `${topPct}%`;
+                el.style.right = 'auto';
+                el.style.bottom = 'auto';
+            }
+
+            function closeDragElement() {
+                isDragging = false;
+                el.classList.remove('cursor-grabbing');
+                el.classList.add('cursor-grab');
+                el.style.outline = "none";
+                
+                document.removeEventListener('mouseup', closeDragElement);
+                document.removeEventListener('mousemove', elementDrag);
+                document.removeEventListener('touchend', closeDragElement);
+                document.removeEventListener('touchmove', elementTouchDrag);
+            }
+        }
+
+        function animateLoop() {
+            breathingTimer += breathingCycleSpeed;
+            const sineWave = Math.sin(breathingTimer);
+            
+            // Xóa sạch canvas chuẩn bị vẽ khung hình mới
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            
+            // Tọa độ vị trí mũi/miệng của nhân vật trên ảnh gốc (Khoảng 45% ngang, 40.5% dọc)
+            const originX = canvasWidth * 0.448;
+            const originY = canvasHeight * 0.405;
+            
+            // Trạng thái thở ra là nửa chu kỳ dương của sóng sin
+            const exhaleVal = Math.max(0, sineWave);
+            
+            // Rung lắc kích thước bong bóng chữ "KHÒ KHÒ..." theo độ thở ra hít vào
+            if (!isWokenUp) {
+                // Bong bóng bên trái phồng to thu nhỏ
+                const leftScale = 0.85 + exhaleVal * 0.35;
+                snoreBubbleLeft.style.transform = `rotate(-12deg) scale(${leftScale})`;
+                snoreBubbleLeft.style.opacity = `${0.3 + exhaleVal * 0.7}`;
+                
+                // Bong bóng bên phải lắc giật cục chậm hơn một nhịp
+                const rightScale = 0.8 + Math.max(0, -sineWave) * 0.4;
+                snoreBubbleRight.style.transform = `rotate(12deg) scale(${rightScale})`;
+                snoreBubbleRight.style.opacity = `${0.2 + Math.max(0, -sineWave) * 0.8}`;
+                
+                // Sinh thêm các bọt ngủ Zzz khi thở ra mạnh mẽ
+                if (exhaleVal > 0.15 && Math.random() < (config.zzzDensity / 85)) {
+                    // Trộn nốt nhạc vào bong bóng chữ Zzz
+                    const pType = Math.random() > 0.42 ? 'Z' : (Math.random() > 0.3 ? 'Note' : 'Star');
+                    particles.push(new SleepParticle(originX, originY, pType));
+                }
+            } else {
+                // Tắt các bóng KHÒ khi giật mình tỉnh giấc
+                snoreBubbleLeft.style.opacity = "0";
+                snoreBubbleRight.style.opacity = "0";
+            }
+
+            // Cập nhật tọa độ và vẽ các hạt bong bóng bay
+            particles.forEach((p, idx) => {
+                p.update(exhaleVal);
+                p.draw();
+                
+                // Giải phóng dọn dẹp các hạt đã tan biến
+                if (p.alpha <= 0 || p.x < 0 || p.y < 0) {
+                    particles.splice(idx, 1);
+                }
+            });
+
+            // Vẽ bầy chim nhúc nhích theo nhịp thở chủ nhân
+            activeBirds.forEach(bird => {
+                bird.draw(breathingTimer);
+            });
+
+            // Trigger the breathing sign sound once per inhale/exhale cycle.
+            const isExhaling = sineWave > 0.12;
+            if (!isWokenUp && isExhaling && !lastBreathExhale) {
+                playBreathingSignSound();
+            }
+            lastBreathExhale = isExhaling;
+
+            // Điều biến thời gian thực dải âm thanh khò khò
+            if (!isMuted && audioContext) {
+                updateSnoreSoundIntensity(sineWave);
+            }
+
+            // Ghi nhận trực tiếp độ ồn gáy thực tế biến thiên lên HUD
+            if (!isWokenUp) {
+                const liveDb = Math.floor(config.volume * 0.72 + (exhaleVal * (config.volume * 0.28)));
+                statDb.innerText = `${liveDb} dB`;
+                statHeart.innerText = `${52 + Math.floor(exhaleVal * 5.5)} bpm`;
+                statDepth.innerText = `${Math.floor(100 - (config.volume * 0.14) + (Math.sin(breathingTimer/4.5) * 4))}%`;
+            }
+
+            requestAnimationFrame(animateLoop);
+        }
+
+        // Khởi động khi tải xong toàn bộ trang web
+        window.onload = function() {
+            // Định lượng kích thước canvas nền
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Triển khai bầy chim
+            spawnBirds();
+            // Tải trước các file âm thanh từ thư mục `sounds/` nếu có
+            try { loadAudioAssets(); } catch(e) { console.warn('loadAudioAssets failed', e); }
+            
+            // Thiết lập lắng nghe tương tác nhấp mặt
+            registerCanvasClickListeners();
+            
+            // Kích hoạt tính năng kéo thả nhãn động cao cấp có Anchor Projection chống trôi chuột
+            makeElementDraggable(document.getElementById('snoreBubbleLeft'));
+            makeElementDraggable(document.getElementById('snoreBubbleRight'));
+            makeElementDraggable(document.getElementById('subtitleWrapper'));
+            makeElementDraggable(document.getElementById('virtualScreen'));
+            
+            // Thiết lập giá trị các thanh trượt ban đầu
+            updateUIControls();
+            
+            // Khớp chữ nội dung của màn hình ảo và phụ đề lúc khởi động
+            overlayMonitorTitle.innerText = screenTextInp.value;
+            overlaySubTitle.innerText = subtitleInp.value;
+            
+            // Bắt đầu vòng lặp chuyển động hoạt họa không ngừng nghỉ
+            animateLoop();
+            
+            // Gửi lời chào đón đầu tiên tới người chơi
+            showNotification("Đã khôi phục hoàn hảo phiên bản Kéo Thả 1:1 siêu dính chuột! Trải nghiệm nhé 😴", "success");
+        };
+    </script>
+</body>
+</html>
